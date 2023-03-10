@@ -63,6 +63,12 @@ module "create_user" {
   make_credentials        = true
   path_export_credentials = "$PWD/path-to-save"
 
+  groups = [
+    {
+      name = "tf-test-group"
+    }
+  ]
+
   custom_policies = [
     {
       name        = "tf-test-policy"
@@ -192,6 +198,125 @@ module "create_group" {
 | only_create_group | `bool` | `false` | no | If true It's only create resources to groups, policies and attachments| `*`false <br> `*`true |
 | ou_name | `string` | `no` | no | Organization unit name | `-` |
 | tags | `map(any)` | `{}` | no | Tags to resources | `-` |
+
+* Model of variable custom_policies
+```hcl
+variable "custom_policies" {
+  description = "List of the custom policies"
+  type = list(object({
+    name        = string
+    policy      = any
+    path        = optional(string)
+    description = optional(string)
+    tags        = optional(any)
+  }))
+  default = [
+    {
+      name        = "tf-test-policy"
+      path        = "/"
+      description = "My test policy"
+
+      policy = {
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Action = [
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents",
+              "logs:PutMetricFilter",
+              "logs:PutRetentionPolicy"
+            ]
+            Effect   = "Allow"
+            Resource = "*"
+          },
+        ]
+      }
+    }
+  ]
+}
+```
+
+* Model of variable existing_policy_names
+```hcl
+variable "existing_policy_names" {
+  description = "List of the names to existing policies"
+  type = list(object({
+    name = string
+  }))
+  default = [
+    {
+      name = "AmazonSageMakerFullAccess"
+    }
+  ]
+}
+```
+
+* Model of variable custom_roles_instance_profile
+```hcl
+variable "custom_roles_instance_profile" {
+  description = "List of the custom roles to attach instance profile"
+  type = list(object({
+    name            = string
+    policy          = any
+    tags            = optional(any)
+    attach_instance = optional(bool, true)
+  }))
+  default = [
+    {
+      name            = "tf-test-role"
+      attach_instance = true
+
+      policy = {
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Action = "sts:AssumeRole"
+            Effect = "Allow"
+            Sid    = ""
+            Principal = {
+              Service = ["sns.amazonaws.com"]
+            }
+          },
+        ]
+      }
+    }
+  ]
+}
+```
+
+* Model of variable existing_role_names
+```hcl
+variable "existing_role_names" {
+  description = "List of the names to existing roles"
+  type = list(object({
+    name            = string
+    attach_instance = optional(bool, true)
+  }))
+  default = [
+    {
+      name            = "tf-lambda-python-trust-role"
+      attach_instance = true
+    }
+  ]
+}
+
+```
+
+* Model of variable xxx
+```hcl
+variable "groups" {
+  description = "List of the groups"
+  type = list(object({
+    name = string
+  }))
+  default = [
+    {
+      name = "tf-test-group"
+    }
+  ]
+}
+```
 
 
 ## Resources
